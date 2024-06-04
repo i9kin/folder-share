@@ -8,7 +8,7 @@ from websockets.legacy.server import WebSocketServerProtocol as ws_type
 import signal
 import os
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 host_websocket = {}
 uuid_f = lambda: "123"
 do_it = True
@@ -23,7 +23,6 @@ async def send(ws: ws_type, msg):
 
 
 async def handler(websocket: ws_type, path):
-    print("qqq")
     logging.info("Connection established")
     message = await read(websocket)
     if message.startswith("client"):
@@ -43,7 +42,6 @@ async def handler(websocket: ws_type, path):
 
 
 async def proxy(host: ws_type, client: ws_type, host_id):
-    print("proxy run")
     try:
         while True:
             if not client.open:
@@ -54,9 +52,6 @@ async def proxy(host: ws_type, client: ws_type, host_id):
                 await send(host, await read(client))  # off
                 await send(host, await read(client))  # size
                 ans = await read(host)
-
-                print(ans[:20], len(ans))
-
                 if ans[0] == ord("0"):
                     await send(client, ans)
                 else:
@@ -65,9 +60,6 @@ async def proxy(host: ws_type, client: ws_type, host_id):
                     await send(client, ans)  # 1fhash
                     # fhash = conv(ans[1:11])
                     total_chunks = int(ans[11:16])
-
-                    print(ans[:20], command, total_chunks, "total")
-
                     used = [False for i in range(total_chunks)]
                     for i in range(1, total_chunks):
                         data = await read(host)
@@ -75,8 +67,6 @@ async def proxy(host: ws_type, client: ws_type, host_id):
                         assert chunk < total_chunks
                         assert not used[chunk]
                         used[chunk] = True
-
-                        print(len(data))
                         await send(client, data)
 
             elif command.startswith("lookup") or command == "ls":

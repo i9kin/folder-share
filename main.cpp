@@ -35,6 +35,9 @@ namespace fs = std::filesystem;
 using tcp = net::ip::tcp;
 using file_size_t = size_t; // size_t в read передаётся
 using lookup_t = std::pair<bool, file_size_t>;
+using ws_type = websocket::stream<typename beast::tcp_stream::rebind_executor<
+    typename net::use_awaitable_t<>::executor_with_default<
+        net::any_io_executor>>::other>;
 
 std::string fuse_dir = "mountpoint";
 const char* host = "localhost";
@@ -54,10 +57,6 @@ bool is_regular_file(const std::string& path)
 {
     return fs::exists(path) && fs::is_regular_file(path) && path.find('/') == std::string::npos;
 }
-
-using ws_type = websocket::stream<typename beast::tcp_stream::rebind_executor<
-    typename net::use_awaitable_t<>::executor_with_default<
-        net::any_io_executor>>::other>;
 
 inline auto to_buffer(const std::string& s)
 {
